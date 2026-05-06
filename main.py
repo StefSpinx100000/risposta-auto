@@ -20,47 +20,36 @@ Parcheggio: gratuito in strada.
 
 memoria_clienti = {}
 
-def chiedi_a_gemini(messaggio_cliente, cronologia=None):
+def chiedi_a_openai(messaggio_cliente, cronologia=None):
     try:
-        api_key = os.getenv("GEMINI_API_KEY", "")
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key={api_key}"
+        import openai
+        openai.api_key = os.getenv("OPENAI_API_KEY", "")
         
-        contesto = f"""Sei un assistente cordiale di una pizzeria italiana. Parla solo in italiano.
-
-Informazioni sull'attività:
-{INFO_ATTIVITA}
-
-Rispondi in modo breve, utile e amichevole. Se non sai qualcosa, proponi di verificare col titolare.
-
-Cliente scrive: {messaggio_cliente}
-Assistente:"""
-        
-        data = {
-            "contents": [{
-                "parts": [{"text": contesto}]
-            }]
-        }
-        
-        response = requests.post(url, json=data)
-        result = response.json()
-        return result["candidates"][0]["content"]["parts"][0]["text"].strip()
-    
-    except Exception as e:
-        print(f"Errore Gemini: {e}")
+        response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": f"Sei un assistente cordiale di una pizzeria italiana. Rispondi in italiano, in modo breve e utile. Se non sai qualcosa, proponi di verificare col titolare.\n\n{INFO_ATTIVITA}"},
+                {"role": "user", "content": messaggio_cliente}
+            ],
+            max_tokens=150,
+            temperature=0.7
+        )
+        return response.choices[0].message.content.strip()
+    except:
         return rispondi_base(messaggio_cliente)
 
 def rispondi_base(messaggio):
     msg = messaggio.lower()
     if any(word in msg for word in ["orari", "aperto", "aprite", "chiuso"]):
         return "Siamo aperti 12:00-15:00 e 19:00-23:30. Chiusi il Lunedì. Posso prenotarle un tavolo?"
-    elif any(word in msg for word in ["menù", "menu", "prezzi", "costo"]):
+    elif any(word in msg for word in ["menu", "menù", "prezzi", "costo"]):
         return "Le nostre pizze vanno da 6€ a 12€. Abbiamo anche opzioni senza glutine. Vuole che le invii il menù completo?"
     elif any(word in msg for word in ["prenotare", "prenotazione", "tavolo"]):
         return "Certo! Per quando vorrebbe prenotare? Mi dica giorno e orario e verifico disponibilità."
     elif any(word in msg for word in ["consegna", "domicilio", "portate"]):
         return "Facciamo consegna a domicilio in zona (2€ extra). Mi dica l'indirizzo e verifico se siamo coperti."
     elif any(word in msg for word in ["senza glutine", "celiaco", "glutine"]):
-        return "Sì, abbiamo pizze senza glutine certificate AIC! Tutte le nostre pizze possono essere preparate senza glutine."
+        return "Sì, abbiamo pizze senza glutine certificate! Tutte le nostre pizze possono essere preparate senza glutine."
     else:
         return "Grazie per averci contattato! Come posso aiutarla? Mi dica pure cosa le serve."
 
@@ -79,7 +68,7 @@ async def ricevi_messaggi(request: Request):
         numero_cliente = messaggio["from"]
         testo_ricevuto = messaggio["text"]["body"]
         cronologia = memoria_clienti.get(numero_cliente, [])
-        risposta = chiedi_a_gemini(testo_ricevuto, cronologia)
+        risposta = chiedi_a_openai(testo_ricevuto, cronologia)
         cronologia.append({"ruolo": "cliente", "testo": testo_ricevuto})
         cronologia.append({"ruolo": "assistente", "testo": risposta})
         memoria_clienti[numero_cliente] = cronologia[-5:]
@@ -252,7 +241,7 @@ async def home():
                 <button onclick="test()">Invia</button>
             </div>
             <p class="footer-text">Collegato a WhatsApp Business API &middot; Risposte in tempo reale</p>
-            <p class="powered-by">🧠 Powered by Gemini AI</p>
+            <p class="powered-by">🧠 Powered by OpenAI</p>
         </div>
         <script>
             async function test() {
@@ -276,5 +265,5 @@ async def home():
 
 @app.get("/test")
 async def test(msg: str = ""):
-    risposta = chiedi_a_gemini(msg)
+    risposta = chiedi_a_openai(msg)
     return {"messaggio": msg, "risposta": risposta}
