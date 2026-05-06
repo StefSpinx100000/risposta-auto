@@ -3,238 +3,561 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Risposta-Auto - Risponditore WhatsApp Automatico</title>
+    <title>Risposta-Auto - AI WhatsApp Responder</title>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            line-height: 1.6;
-            color: #1a1a1a;
-            background: #f8f9fa;
+        html {
+            scroll-behavior: smooth;
         }
 
-        .hero {
-            background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: #0a0a0a;
             color: white;
-            padding: 80px 20px;
+            overflow-x: hidden;
+        }
+
+        /* Animazioni */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(60px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .reveal {
+            opacity: 0;
+            transform: translateY(60px);
+            transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Navbar */
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+            padding: 20px 40px;
+            background: rgba(10, 10, 10, 0.8);
+            backdrop-filter: blur(20px);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        nav .logo {
+            font-size: 1.5em;
+            font-weight: 800;
+            background: linear-gradient(135deg, #25D366, #00ff88);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            margin-left: 30px;
+            font-weight: 600;
+            transition: color 0.3s;
+        }
+
+        nav a:hover {
+            color: #25D366;
+        }
+
+        /* Hero */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             text-align: center;
+            background: radial-gradient(ellipse at center, #1a1a2e 0%, #0a0a0a 70%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at center, rgba(37, 211, 102, 0.1) 0%, transparent 50%);
+            animation: pulse 4s ease-in-out infinite;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+            max-width: 800px;
+            padding: 20px;
+        }
+
+        .hero-badge {
+            display: inline-block;
+            background: rgba(37, 211, 102, 0.15);
+            border: 1px solid rgba(37, 211, 102, 0.3);
+            color: #25D366;
+            padding: 8px 20px;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 0.9em;
+            margin-bottom: 30px;
+            animation: fadeInUp 0.6s ease-out;
         }
 
         .hero h1 {
-            font-size: 3em;
-            margin-bottom: 10px;
-            font-weight: 800;
+            font-size: 5em;
+            font-weight: 900;
+            line-height: 1.1;
+            margin-bottom: 20px;
+            animation: fadeInUp 0.6s ease-out 0.2s both;
+            background: linear-gradient(135deg, #ffffff 0%, #25D366 50%, #00ff88 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
         .hero p {
-            font-size: 1.3em;
-            opacity: 0.95;
-            margin-bottom: 30px;
+            font-size: 1.4em;
+            color: #aaa;
+            margin-bottom: 40px;
+            animation: fadeInUp 0.6s ease-out 0.4s both;
         }
 
-        .btn {
+        .btn-primary {
             display: inline-block;
-            background: white;
-            color: #128C7E;
-            padding: 18px 40px;
+            background: linear-gradient(135deg, #25D366, #00ff88);
+            color: #0a0a0a;
+            padding: 18px 45px;
             border-radius: 50px;
             text-decoration: none;
             font-weight: 700;
             font-size: 1.2em;
-            transition: transform 0.2s, box-shadow 0.2s;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            transition: all 0.3s;
+            animation: fadeInUp 0.6s ease-out 0.6s both;
+            box-shadow: 0 0 40px rgba(37, 211, 102, 0.3);
         }
 
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 0 60px rgba(37, 211, 102, 0.5);
         }
 
+        /* Sections */
         .section {
-            max-width: 800px;
-            margin: 60px auto;
-            padding: 0 20px;
+            padding: 100px 20px;
+            max-width: 1000px;
+            margin: 0 auto;
             text-align: center;
         }
 
         .section h2 {
-            font-size: 2em;
-            margin-bottom: 20px;
-            color: #128C7E;
-        }
-
-        .section p {
-            font-size: 1.1em;
-            color: #555;
-            margin-bottom: 15px;
-        }
-
-        .steps {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 20px;
-            margin-top: 30px;
-        }
-
-        .step {
-            background: white;
-            padding: 30px 20px;
-            border-radius: 15px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-        }
-
-        .step .number {
-            font-size: 2.5em;
+            font-size: 3em;
             font-weight: 800;
-            color: #25D366;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #fff, #25D366);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .section .subtitle {
+            font-size: 1.2em;
+            color: #888;
+            margin-bottom: 60px;
+        }
+
+        /* Problem section */
+        .problem {
+            background: linear-gradient(180deg, #0a0a0a 0%, #0d1117 100%);
+        }
+
+        .phone-mockup {
+            width: 280px;
+            height: 560px;
+            background: #1a1a2e;
+            border-radius: 40px;
+            border: 3px solid #333;
+            padding: 15px;
+            margin: 40px auto;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 0 80px rgba(37, 211, 102, 0.15);
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .phone-screen {
+            background: #0a0a0a;
+            height: 100%;
+            border-radius: 25px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .message {
+            padding: 10px 15px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            max-width: 85%;
+            animation: fadeInUp 0.4s ease-out;
+        }
+
+        .message.received {
+            background: #1a1a2e;
+            align-self: flex-start;
+            color: #ccc;
+        }
+
+        .message.sent {
+            background: #25D366;
+            align-self: flex-end;
+            color: #0a0a0a;
+            font-weight: 600;
+        }
+
+        /* Cards */
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            margin-top: 40px;
+        }
+
+        .card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 20px;
+            padding: 40px 25px;
+            transition: all 0.4s;
+            text-align: left;
+        }
+
+        .card:hover {
+            border-color: rgba(37, 211, 102, 0.3);
+            transform: translateY(-5px);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+        }
+
+        .card .icon {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+        }
+
+        .card h3 {
+            font-size: 1.3em;
+            font-weight: 700;
             margin-bottom: 10px;
         }
 
-        .step h3 {
-            font-size: 1.1em;
-            margin-bottom: 8px;
+        .card p {
+            color: #888;
+            font-size: 0.95em;
         }
 
-        .step p {
+        /* Stats */
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+            margin: 50px 0;
+        }
+
+        .stat-number {
+            font-size: 3.5em;
+            font-weight: 900;
+            background: linear-gradient(135deg, #25D366, #00ff88);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .stat-label {
+            color: #888;
             font-size: 0.9em;
-            color: #777;
+            margin-top: 5px;
         }
 
-        .price-box {
-            background: white;
-            border: 3px solid #25D366;
-            border-radius: 20px;
-            padding: 40px;
-            max-width: 400px;
+        /* Pricing */
+        .pricing {
+            background: linear-gradient(180deg, #0d1117 0%, #0a0a0a 100%);
+        }
+
+        .price-card {
+            background: linear-gradient(145deg, rgba(37, 211, 102, 0.1), rgba(0, 255, 136, 0.05));
+            border: 2px solid rgba(37, 211, 102, 0.3);
+            border-radius: 30px;
+            padding: 60px 40px;
+            max-width: 450px;
             margin: 0 auto;
+            position: relative;
+            overflow: hidden;
         }
 
-        .price-box .amount {
-            font-size: 3em;
-            font-weight: 800;
-            color: #128C7E;
+        .price-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(37,211,102,0.1) 0%, transparent 70%);
+            animation: pulse 3s ease-in-out infinite;
         }
 
-        .price-box .period {
-            font-size: 1.2em;
-            color: #777;
-        }
-
-        .price-box .trial {
-            background: #25D366;
-            color: white;
-            display: inline-block;
-            padding: 5px 15px;
-            border-radius: 20px;
-            font-size: 0.9em;
-            margin: 15px 0;
-        }
-
-        .btn-green {
+        .price-badge {
             display: inline-block;
             background: #25D366;
-            color: white;
-            padding: 18px 40px;
+            color: #0a0a0a;
+            padding: 8px 20px;
             border-radius: 50px;
-            text-decoration: none;
             font-weight: 700;
-            font-size: 1.2em;
-            transition: transform 0.2s;
-            margin-top: 20px;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 1;
         }
 
-        .btn-green:hover {
-            transform: translateY(-2px);
+        .price-amount {
+            font-size: 4em;
+            font-weight: 900;
+            position: relative;
+            z-index: 1;
         }
 
+        .price-period {
+            color: #888;
+            position: relative;
+            z-index: 1;
+        }
+
+        .price-features {
+            list-style: none;
+            margin: 30px 0;
+            position: relative;
+            z-index: 1;
+            text-align: left;
+            padding: 0 20px;
+        }
+
+        .price-features li {
+            padding: 8px 0;
+            color: #ccc;
+        }
+
+        .price-features li::before {
+            content: '✅ ';
+        }
+
+        /* CTA */
+        .cta {
+            background: radial-gradient(ellipse at center, #1a2a1a 0%, #0a0a0a 70%);
+            padding: 100px 20px;
+        }
+
+        /* Footer */
         footer {
             text-align: center;
             padding: 40px;
-            color: #aaa;
-            font-size: 0.9em;
+            color: #555;
+            border-top: 1px solid rgba(255,255,255,0.05);
         }
 
-        @media (max-width: 600px) {
+        @media (max-width: 768px) {
             .hero h1 {
+                font-size: 2.5em;
+            }
+            .section h2 {
                 font-size: 2em;
             }
-            .steps {
+            .stats {
                 grid-template-columns: 1fr;
+            }
+            nav {
+                padding: 15px 20px;
+            }
+            nav a {
+                display: none;
             }
         }
     </style>
 </head>
 <body>
 
+    <!-- Navbar -->
+    <nav>
+        <div class="logo">Risposta-Auto</div>
+        <div>
+            <a href="#come-funziona">Come funziona</a>
+            <a href="#prezzi">Prezzi</a>
+            <a href="#inizia" class="btn-primary" style="padding:10px 25px; font-size:0.9em;">Prova Gratis</a>
+        </div>
+    </nav>
+
     <!-- Hero -->
-    <div class="hero">
-        <h1>🤖 Risposta-Auto</h1>
-        <p>Il risponditore automatico WhatsApp con AI.<br>Mai più un cliente perso.</p>
-        <a href="#" class="btn">Prova Gratis 7 Giorni →</a>
-    </div>
+    <section class="hero">
+        <div class="hero-content">
+            <div class="hero-badge">🚀 AI WhatsApp Responder</div>
+            <h1>Rispondi ai clienti mentre dormi</h1>
+            <p>L'intelligenza artificiale che gestisce WhatsApp per te. 24/7. In italiano. Automatico.</p>
+            <a href="#inizia" class="btn-primary">Inizia Prova Gratuita →</a>
+        </div>
+    </section>
 
-    <!-- Problema -->
-    <div class="section">
-        <h2>📱 Quanti clienti perdi ogni giorno?</h2>
-        <p>Ogni messaggio su WhatsApp è un potenziale cliente.<br>Se non rispondi subito, va dal concorrente.</p>
-    </div>
+    <!-- Problem -->
+    <section class="section problem">
+        <p style="color:#25D366; font-weight:700; text-transform:uppercase; letter-spacing:2px;">Il Problema</p>
+        <h2>Ogni messaggio perso = un cliente in meno</h2>
+        <p class="subtitle">Il 78% dei clienti si aspetta una risposta entro 5 minuti. Tu puoi?</p>
+        
+        <div class="phone-mockup">
+            <div class="phone-screen">
+                <div class="message received">Avete posto stasera?</div>
+                <div class="message received">Quanto costa una pizza?</div>
+                <div class="message received">Fate consegna a domicilio?</div>
+                <div class="message received">Siete aperti domenica?</div>
+                <div class="message received">Avete opzioni vegane?</div>
+                <p style="color:#666; text-align:center; margin-top:auto; font-size:0.7em;">+ 47 messaggi non letti</p>
+            </div>
+        </div>
+    </section>
 
-    <!-- Soluzione -->
-    <div class="section">
-        <h2>✅ Risposta-Auto fa tutto da solo</h2>
-        <p>Orari, menù, prenotazioni, consegne.<br>In italiano perfetto. 24 ore su 24.</p>
-    </div>
+    <!-- Solution -->
+    <section class="section">
+        <p style="color:#25D366; font-weight:700; text-transform:uppercase; letter-spacing:2px;">La Soluzione</p>
+        <h2>Risposta-Auto fa tutto da solo</h2>
+        <p class="subtitle">Tu dormi. Lui lavora.</p>
+        
+        <div class="stats">
+            <div>
+                <div class="stat-number">24/7</div>
+                <div class="stat-label">Sempre attivo</div>
+            </div>
+            <div>
+                <div class="stat-number">0</div>
+                <div class="stat-label">Clienti persi</div>
+            </div>
+            <div>
+                <div class="stat-number">2h</div>
+                <div class="stat-label">Risparmiate al giorno</div>
+            </div>
+        </div>
+    </section>
 
     <!-- Come funziona -->
-    <div class="section">
-        <h2>Come funziona</h2>
-        <div class="steps">
-            <div class="step">
-                <div class="number">1</div>
-                <h3>Colleghi WhatsApp</h3>
-                <p>In 5 minuti, senza tecnici.</p>
+    <section class="section" id="come-funziona">
+        <p style="color:#25D366; font-weight:700; text-transform:uppercase; letter-spacing:2px;">Come Funziona</p>
+        <h2>Semplice come parlare</h2>
+        <p class="subtitle">Nessun tecnico. Nessuna complicazione.</p>
+        
+        <div class="cards">
+            <div class="card reveal">
+                <div class="icon">🔗</div>
+                <h3>1. Colleghi WhatsApp</h3>
+                <p>Scannerizzi un QR code dal tuo telefono. Fine. 5 minuti.</p>
             </div>
-            <div class="step">
-                <div class="number">2</div>
-                <h3>Ci dici cosa fai</h3>
-                <p>Orari, prezzi, servizi della tua attività.</p>
+            <div class="card reveal">
+                <div class="icon">📝</div>
+                <h3>2. Ci dici cosa fai</h3>
+                <p>Orari, menù, prezzi. L'AI impara tutto in 2 minuti.</p>
             </div>
-            <div class="step">
-                <div class="number">3</div>
-                <h3>L'AI risponde</h3>
-                <p>Ai clienti, in automatico, sempre.</p>
+            <div class="card reveal">
+                <div class="icon">🤖</div>
+                <h3>3. L'AI risponde</h3>
+                <p>Ogni messaggio riceve risposta immediata. 24 ore su 24.</p>
             </div>
-            <div class="step">
-                <div class="number">4</div>
-                <h3>Tu risparmi tempo</h3>
-                <p>Fino a 2 ore al giorno liberate.</p>
+            <div class="card reveal">
+                <div class="icon">📊</div>
+                <h3>4. Tu controlli</h3>
+                <p>Dashboard semplice. Vedi tutto. Modifichi tutto. Nessuna sorpresa.</p>
             </div>
         </div>
-    </div>
+    </section>
 
-    <!-- Prezzo -->
-    <div class="section">
-        <h2>💶 Prezzo</h2>
-        <div class="price-box">
-            <div class="trial">7 GIORNI GRATIS</div>
-            <br>
-            <span class="amount">9,90€</span>
-            <span class="period">/mese</span>
-            <p>Dopo la prova gratuita.<br>Nessun impegno. Disdici quando vuoi.</p>
-            <a href="#" class="btn-green">Inizia Prova Gratuita →</a>
+    <!-- Pricing -->
+    <section class="section pricing" id="prezzi">
+        <p style="color:#25D366; font-weight:700; text-transform:uppercase; letter-spacing:2px;">Prezzo</p>
+        <h2>Un caffè al giorno</h2>
+        <p class="subtitle">Per non perdere più un cliente</p>
+        
+        <div class="price-card reveal">
+            <div class="price-badge">7 GIORNI GRATIS</div>
+            <div class="price-amount">9,90€</div>
+            <div class="price-period">/mese</div>
+            <ul class="price-features">
+                <li>Risposte illimitate</li>
+                <li>AI in italiano</li>
+                <li>Dashboard di controllo</li>
+                <li>Supporto via email</li>
+                <li>Aggiornamenti gratuiti</li>
+            </ul>
+            <a href="#" class="btn-primary" style="display:block; text-align:center;">Inizia Gratis Ora →</a>
+            <p style="color:#666; margin-top:15px; font-size:0.8em;">Nessuna carta di credito richiesta</p>
         </div>
-    </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="section cta" id="inizia">
+        <h2>Pronto a non perdere più clienti?</h2>
+        <p class="subtitle">Unisciti alle attività che già usano Risposta-Auto</p>
+        <a href="#" class="btn-primary" style="font-size:1.3em; padding:20px 50px;">🚀 Inizia Prova Gratuita</a>
+    </section>
 
     <!-- Footer -->
     <footer>
         © 2026 Risposta-Auto · Fatto in Italia 🇮🇹<br>
-        Domande? Scrivi a info@risposta-auto.it
+        info@risposta-auto.it
     </footer>
+
+    <!-- Scroll Animation Script -->
+    <script>
+        function reveal() {
+            var reveals = document.querySelectorAll(".reveal");
+            for (var i = 0; i < reveals.length; i++) {
+                var windowHeight = window.innerHeight;
+                var elementTop = reveals[i].getBoundingClientRect().top;
+                var elementVisible = 100;
+                if (elementTop < windowHeight - elementVisible) {
+                    reveals[i].classList.add("active");
+                }
+            }
+        }
+        window.addEventListener("scroll", reveal);
+        reveal();
+    </script>
 
 </body>
 </html>
