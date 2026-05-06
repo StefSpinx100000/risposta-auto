@@ -22,21 +22,34 @@ Parcheggio: gratuito in strada.
 
 memoria_clienti = {}
 
-def chiedi_a_chatgpt(messaggio_cliente, cronologia=None):
+def chiedi_a_gemini(messaggio_cliente, cronologia=None):
     try:
-        import openai
-        openai.api_key = os.getenv("OPENAI_API_KEY", "la-tua-chiave-qui")
-        contesto = f"{INFO_ATTIVITA}\n\nCronologia recente: {cronologia}\n\nCliente scrive: {messaggio_cliente}"
-        response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {"role": "system", "content": "Sei un assistente cordiale di una pizzeria. Rispondi in italiano, in modo breve e utile. Se non sai qualcosa, dì 'Chiedo al titolare e le faccio sapere'."},
-                {"role": "user", "content": contesto}
-            ],
-            max_tokens=150,
-            temperature=0.7
-        )
-        return response.choices[0].message.content.strip()
+        api_key = os.getenv("GEMINI_API_KEY", "")
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={api_key}"
+        
+        contesto = f"""Sei un assistente cordiale di una pizzeria italiana. Parla solo in italiano.
+
+Informazioni sull'attività:
+{INFO_ATTIVITA}
+
+Cronologia recente della conversazione:
+{cronologia}
+
+Rispondi in modo breve, utile e amichevole. Se non sai qualcosa, proponi di verificare col titolare.
+
+Cliente scrive: {messaggio_cliente}
+Assistente:"""
+        
+        data = {
+            "contents": [{
+                "parts": [{"text": contesto}]
+            }]
+        }
+        
+        response = requests.post(url, json=data)
+        result = response.json()
+        return result["candidates"][0]["content"]["parts"][0]["text"].strip()
+    
     except:
         return rispondi_base(messaggio_cliente)
 
@@ -70,7 +83,7 @@ async def ricevi_messaggi(request: Request):
         numero_cliente = messaggio["from"]
         testo_ricevuto = messaggio["text"]["body"]
         cronologia = memoria_clienti.get(numero_cliente, [])
-        risposta = chiedi_a_chatgpt(testo_ricevuto, cronologia)
+        risposta = chiedi_a_gemini(testo_ricevuto, cronologia)
         cronologia.append({"ruolo": "cliente", "testo": testo_ricevuto})
         cronologia.append({"ruolo": "assistente", "testo": risposta})
         memoria_clienti[numero_cliente] = cronologia[-5:]
@@ -224,6 +237,12 @@ async def home():
                 font-size: 0.8em;
                 margin-top: 30px;
             }
+            .powered-by {
+                text-align: center;
+                color: #555;
+                font-size: 0.75em;
+                margin-top: 5px;
+            }
         </style>
     </head>
     <body>
@@ -237,6 +256,7 @@ async def home():
                 <button onclick="test()">Invia</button>
             </div>
             <p class="footer-text">Collegato a WhatsApp Business API &middot; Risposte in tempo reale</p>
+            <p class="powered-by">🧠 Powered by Gemini AI</p>
         </div>
         <script>
             async function test() {
@@ -260,5 +280,5 @@ async def home():
 
 @app.get("/test")
 async def test(msg: str = ""):
-    risposta = chiedi_a_chatgpt(msg)
+    risposta = chiedi_a_gemini(msg)
     return {"messaggio": msg, "risposta": risposta}
