@@ -23,7 +23,7 @@ memoria_clienti = {}
 def chiedi_a_gemini(messaggio_cliente, cronologia=None):
     try:
         api_key = os.getenv("GEMINI_API_KEY", "")
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key={api_key}"
         
         contesto = f"""Sei un assistente cordiale di una pizzeria italiana. Parla solo in italiano.
 
