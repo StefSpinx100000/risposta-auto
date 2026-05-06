@@ -1,9 +1,7 @@
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
 import requests
-import json
 import os
-from datetime import datetime
 
 app = FastAPI()
 
@@ -25,15 +23,12 @@ memoria_clienti = {}
 def chiedi_a_gemini(messaggio_cliente, cronologia=None):
     try:
         api_key = os.getenv("GEMINI_API_KEY", "")
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={api_key}"
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
         
         contesto = f"""Sei un assistente cordiale di una pizzeria italiana. Parla solo in italiano.
 
 Informazioni sull'attività:
 {INFO_ATTIVITA}
-
-Cronologia recente della conversazione:
-{cronologia}
 
 Rispondi in modo breve, utile e amichevole. Se non sai qualcosa, proponi di verificare col titolare.
 
@@ -50,7 +45,8 @@ Assistente:"""
         result = response.json()
         return result["candidates"][0]["content"]["parts"][0]["text"].strip()
     
-    except:
+    except Exception as e:
+        print(f"Errore Gemini: {e}")
         return rispondi_base(messaggio_cliente)
 
 def rispondi_base(messaggio):
