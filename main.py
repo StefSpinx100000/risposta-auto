@@ -22,10 +22,16 @@ memoria_clienti = {}
 
 def chiedi_a_openai(messaggio_cliente, cronologia=None):
     try:
-        import openai
-        openai.api_key = os.getenv("OPENAI_API_KEY", "")
+        from openai import OpenAI
         
-        response = openai.ChatCompletion.create(
+        api_key = os.getenv("OPENAI_API_KEY", "")
+        
+        if not api_key or api_key == "":
+            return "DEBUG: Chiave API non trovata. Controlla Render Environment."
+        
+        client = OpenAI(api_key=api_key)
+        
+        response = client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[
                 {"role": "system", "content": f"Sei un assistente cordiale di una pizzeria italiana. Rispondi in italiano, in modo breve e utile. Se non sai qualcosa, proponi di verificare col titolare.\n\n{INFO_ATTIVITA}"},
@@ -35,8 +41,9 @@ def chiedi_a_openai(messaggio_cliente, cronologia=None):
             temperature=0.7
         )
         return response.choices[0].message.content.strip()
-    except:
-        return rispondi_base(messaggio_cliente)
+    
+    except Exception as e:
+        return f"DEBUG ERRORE: {str(e)}"
 
 def rispondi_base(messaggio):
     msg = messaggio.lower()
